@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Softball Program Database</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #343a40;
+        }
+        .search-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #f1f3f5;
+            border-radius: 8px;
+        }
+        .search-container input, .search-container select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .rank-cell {
+            text-align: center;
+        }
+        .rank {
+            font-weight: bold;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        .social-links a {
+            margin-right: 10px;
+        }
+        .academic-links a {
+            display: block;
+            margin-bottom: 5px;
+        }
+        #no-results {
+            text-align: center;
+            padding: 25px;
+            font-size: 1.2em;
+            font-style: italic;
+            display: none;
+        }
+        .university-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Colorado Sparkler Attending Universities Database</h1>
+
+        <div class="search-container">
+            <input type="text" id="universitySearch" onkeyup="filterTable()" placeholder="Search by University Name...">
+            <select id="divisionFilter" onchange="filterTable()">
+                <option value="">All Divisions</option>
+            </select>
+            <select id="stateFilter" onchange="filterTable()">
+                <option value="">All States</option>
+            </select>
+             <select id="rankFilter" onchange="filterTable()">
+                <option value="">All Program Ranks</option>
+                <option value="5">5 ★★★★★ (Elite)</option>
+                <option value="4">4 ★★★★☆ (Strong)</option>
+                <option value="3">3 ★★★☆☆ (Competitive)</option>
+                <option value="2">2 ★★☆☆☆ (Developing)</option>
+                <option value="1">1 ★☆☆☆☆ (Building)</option>
+            </select>
+        </div>
+
+        <table id="universityTable">
+            <thead>
+                <tr>
+                    <th>University</th>
+                    <th>Division</th>
+                    <th>State</th>
+                    <th>Head Coach</th>
+                    <th>Program Rank</th>
+                    <th>Social Media</th>
+                    <th>Academic Programs</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+        <div id="no-results">No matching universities found.</div>
+    </div>
+
+<script>
+// Data from "Sparkler Attending Univeristies - Data Merged.csv"
+const csvData = `University,Division,State,Head Coach Name,Head Coach Email,Head Coach Phone,Ext,Softball Program Rank (1-5),Rank Justification,Program X address,Program Instagram/Facebook,Head Coach Social Media,Campus Address,Softball Program Address,Forensic Science Program,Sports Science Program,Education/Teaching Program
+Adams State University,NCAA DII,CO,Dervin Taylor,dtaylor@adams.edu,(719) 587-7421,,2,"Competes in the RMAC; program is developing and working to build consistent success in a competitive DII conference.",X: @ASUSoftball (https://x.com/ASUSoftball),"Instagram: @adamsstatesoftball (https://www.instagram.com/adamsstatesoftball) ",,"208 Edgemont Blvd, Alamosa, CO 81101","ASU Softball Field, Alamosa, CO 81101",B.S. in Chemistry - Forensic Science Emphasis (https://www.adams.edu/academics/undergraduate/chemistry/),"Kinesiology Dept. (B.A./M.S. in Exercise Science, Sport Management) (https://www.adams.edu/academics/undergraduate/kinesiology/)","School of Educator Preparation (Teacher Education, Licensure Programs) (https://www.adams.edu/academics/graduate/sep/)"
+Arizona Christian University,NAIA,AZ,Mike Mayben,mike.mayben@arizonachristian.edu,(602) 386-4100,,3,"Solid NAIA program that is often competitive within the Golden State Athletic Conference and has made recent appearances in the NAIA national tournament.",X: @ACU_Softball (https://x.com/ACU_Softball),"Instagram: @acusoftball (https://www.instagram.com/acusoftball)",@CoachMayben (https://x.com/CoachMayben),"1 W Firestorm Way, Glendale, AZ 85306","ACU Softball Field, 1 W Firestorm Way, Glendale, AZ 85306",Not listed,Not listed,"Secondary Education, B.S. (https://www.arizonachristian.edu/academics/secondary-education/)"
+Arizona Western College,JUCO,AZ,Nikki Bethurum,nicole.bethurum@azwestern.edu,(928) 344-7543,,4,"A powerhouse JUCO program, frequently ranked among the nation's best and a perennial contender for the NJCAA National Championship.",X: @AWCMatadorSball (https://x.com/AWCMatadorSball),"Instagram: @awcmatadorsoftball (https://www.instagram.com/awcmatadorsoftball/)",,"2020 S Ave 8 E, Yuma, AZ 85365","Charlie Dine Softball Field, 2020 S Ave 8 E, Yuma, AZ 85365",Not listed,A.A. in Health and Physical Education (https://www.azwestern.edu/degrees-and-certificates/health-and-physical-education-aa),A.A. in Elementary Education (https://www.azwestern.edu/degrees-and-certificates/elementary-education-aa)
+Arizona State University,NCAA DI,AZ,Megan Bartlett,megan.bartlett@asu.edu,(480) 965-5081,,4,"Historically strong program with multiple WCWS appearances and a consistent presence in the NCAA tournament. A top-tier Pac-12 contender.",X: @ASUSoftball (https://x.com/ASUSoftball),"Instagram: @asusoftball (https://www.instagram.com/asusoftball)",@coachbartlettasu (https://x.com/coachbartlettasu),,"Alberta B. Farrington Softball Stadium, 601 S College Ave, Tempe, AZ 85281",B.S. in Forensic Science (https://webapp4.asu.edu/programs/t5/majorinfo/ASU00/SHSFORSBS/undergrad/false),"College of Health Solutions (B.S. in Exercise and Wellness, Kinesiology, Sports Science) (https://college.asu.edu/programs/health)","Mary Lou Fulton Teachers College (B.A.E. in Elementary, Secondary, Special Ed.) (https://education.asu.edu/)"
+Arlington Baptist University,NCAA DII,TX,Todd Phillips,tphillips@abu.edu,(817) 461-8741,,1,"Program competes in the NCCAA and is working to establish itself against other DII-level competition.",X: @ABU_Softball (https://x.com/ABU_Softball),,,,"3001 W Division St, Arlington, TX 76012","3001 W Division St, Arlington, TX 76012",Not easily verifiable,Sport Management Minor (https://www.abu.edu/academics/business-degrees),B.S. in Education (https://www.abu.edu/academics/education-degree)
+Auburn University,NCAA DI,AL,Chris Malveaux,,(334) 844-9721,,4,"A strong SEC program that consistently makes the NCAA tournament and has made recent Women's College World Series appearances.",X: @AuburnSoftball (https://x.com/AuburnSoftball),"Instagram: @auburnsoftball (https://www.instagram.com/auburnsoftball)",@ChrisMalveaux (https://x.com/ChrisMalveaux),,"Jane B. Moore Field, 702 W Samford Ave, Auburn, AL 36849",B.S. in Chemistry - Forensic Chemistry Concentration (http://bulletin.auburn.edu/undergraduate/collegeofsciencesandmathematics/departmentofchemistryandbiochemistry/chemistryforensic_bs/),"School of Kinesiology (B.S. in Exercise Science, Physical Education/Teacher Education) (https://education.auburn.edu/school-of-kinesiology/)",College of Education (Multiple teaching programs) (https://education.auburn.edu/)
+Ave Maria University,NAIA,FL,Jazmin Rhoden,jazmin.rhoden@avemaria.edu,(239) 304-7858,,2,"Competes in The Sun Conference; a developing NAIA program focused on building a consistent winning tradition.",X: @AMU_Softball (https://x.com/AMU_Softball),"Instagram: @amugyrenessoftball (https://www.instagram.com/amugyrenessoftball/)",@CoachJazRhoden (https://x.com/CoachJazRhoden),"5050 Ave Maria Blvd, Ave Maria, FL 34142","Bowie's Ballpark, 4810 Kelleher St, Ave Maria, FL 34142",Not listed,B.S. in Exercise Physiology (https://www.avemaria.edu/academics/majors-and-programs/exercise-physiology/),B.A. in Elementary Education (https://www.avemaria.edu/academics/majors-and-programs/elementary-education/)
+Barstow Community College,JUCO,CA,Rebekah Gaspar,rgaspar@barstow.edu,(760) 252-2411,x7235,2,"A California community college program working to build its competitiveness within the CCCAA conference.",,Instagram: @barstowsoftball (https://www.instagram.com/barstowsoftball/),,"2700 Barstow Rd, Barstow, CA 92311","2700 Barstow Rd, Barstow, CA 92311",Not listed,A.A. in Kinesiology for Transfer (https://www.barstow.edu/academics/academic-departments/physical-education-and-athletics/kinesiology-a.a.-t),A.A. in Elementary Teacher Education for Transfer (https://www.barstow.edu/academics/academic-departments/education/elementary-teacher-education)
+Bethany College,NAIA,KS,Dylan Gracia,graciad@bethanylb.edu,(785) 227-3380,,2,"Competes in the Kansas Collegiate Athletic Conference (KCAC); a program focused on building consistency.",X: @BethanySwedesSB (https://x.com/BethanySwedesSB),"Instagram: @bethanyswedessoftball (https://www.instagram.com/bethanyswedessoftball)",@CoachGracia_ (https://x.com/CoachGracia_),"335 E Swensson St, Lindsborg, KS 67456","Bethany Softball Field, 427 N. First St, Lindsborg, KS 67456",Not listed,"B.A. in Health & Exercise Science, Sports Management (https://www.bethanylb.edu/academics/academic-programs/health-human-performance/)",Teacher Education Program (Elementary, Secondary, P-12 Education) (https://www.bethanylb.edu/academics/academic-programs/education/)
+Black Hills State University,NCAA DII,SD,Ashlyn Englehorn,ashlyn.englehorn@bhsu.edu,(605) 642-6882,,2,"Competes in the RMAC; a program that is building and developing within a solid DII conference.",X: @BHSUSoftball (https://x.com/BHSUSoftball),"Instagram: @bhsusoftball (https://www.instagram.com/bhsusoftball)",@ashlynenglehorn (https://x.com/ashlynenglehorn),"1200 University St, Spearfish, SD 57799","BHSU Softball Complex, 1200 University St, Spearfish, SD 57799",Not listed,B.S. in Exercise Science (https://www.bhsu.edu/academics/programs/exercise-science),"School of Education (Elementary, Secondary, Special Ed.) (https://www.bhsu.edu/academics/colleges/education-behavioral-sciences/school-of-education)"
+Boise State University,NCAA DI,ID,Justin Shults,justinshults@boisestate.edu,(208) 426-4432,,3,"A strong program in the Mountain West Conference, consistently competing for conference titles and earning NCAA tournament berths.",X: @BroncoSportsSB (https://x.com/BroncoSportsSB),"Instagram: @boisestatesoftball (https://www.instagram.com/boisestatesoftball)",@JustinShults_18 (https://x.com/JustinShults_18),"1910 W University Dr, Boise, ID 83725","Dona Larsen Park, 150 S Broadway Ave, Boise, ID 83702",Certificate in Forensic Science (https://www.boisestate.edu/coas-forensics/forensic-science-certificate/),"Dept. of Kinesiology (B.S. in Kinesiology with various emphases) (https://www.boisestate.edu/kinesiology/)","College of Education (B.A. in Elementary Education, etc.) (https://www.boisestate.edu/education/)"
+Boston College,NCAA DI,MA,Amy Kvilhaug,amy.kvilhaug@bc.edu,(617) 552-3029,,3,"Competes in the highly competitive ACC. The program is on an upward trajectory, showing significant improvement and fight.",X: @BC_Softball (https://x.com/BC_Softball),"Instagram: @bc_softball (https://www.instagram.com/bc_softball)",@amynole (https://x.com/amynole),"140 Commonwealth Avenue, Chestnut Hill, MA 02467","Brighton Athletics Complex, 2115 Commonwealth Ave, Brighton, MA 02135",Not listed,Not listed,"Lynch School of Education and Human Development (B.A. in Elementary Ed, Secondary Ed, Applied Psychology) (https://www.bc.edu/bc-web/schools/lynch-school.html)"
+Bucknell University,NCAA DI,PA,Sarah Caffrey,sarah.caffrey@bucknell.edu,(570) 577-3590,,3,"A top contender in the Patriot League, frequently appearing in the conference championship and making NCAA tournament appearances.",X: @Bucknell_SB (https://x.com/Bucknell_SB),"Instagram: @bucknell_sb (https://www.instagram.com/bucknell_sb/)",@Coach_Caff (https://x.com/Coach_Caff),"701 Moore Ave, Lewisburg, PA 17837","Becker Field, Moore Ave, Lewisburg, PA 17837",Not listed,Not listed,Dept. of Education (Teacher Certification available for various majors) (https://www.bucknell.edu/academics/arts-sciences/academic-departments-programs/education)
+Cal Berkeley,NCAA DI,CA,Chelsea Spencer,spencerc@berkeley.edu,(510) 642-4355,,4,"A historically elite program with a national championship and multiple WCWS appearances. Remains a competitive force in the Pac-12.",X: @CalSoftball (https://x.com/CalSoftball),"Instagram: @calsoftball (https://www.instagram.com/calsoftball)",@ChelseaSpencer5 (https://x.com/ChelseaSpencer5),"Berkeley, CA 94720","Levine-Fricke Field, 1 Frank Schlessinger Way, Berkeley, CA 94720",Forensic Science Minor (https://ls.berkeley.edu/divisions/undergraduate-studies/minors/forensic-science),"Not listed as a major; research in Dept. of Integrative Biology.",Berkeley School of Education (Graduate level programs) (https://bse.berkeley.edu/)
+Calumet College,NAIA,IN,Dave Meyer,dmeyer@ccsj.edu,(219) 473-4256,,1,"A developing program in the Chicagoland Collegiate Athletic Conference working to build its foundation.",X: @CCSJ_Softball (https://x.com/CCSJ_Softball),"Instagram: @ccsj_softball (https://www.instagram.com/ccsj_softball/)",@CoachDaveMeyer (https://x.com/CoachDaveMeyer),"2400 New York Ave, Whiting, IN 46394","Whiting P.O.L.I.C.E. P.A.L. Calumet Refinery Sports Complex, 1100 119th St, Whiting, IN 46394",B.S. in Criminal Justice (Forensic Science not specified),Not listed,Education Programs (Elementary and Secondary licensure) (https://www.ccsj.edu/department-of-education)
+Carnegie Mellon University,NCAA DIII,PA,Monica Harrison,monicah@andrew.cmu.edu,(412) 268-5232,,3,"A strong academic institution with a competitive DIII softball program in the University Athletic Association (UAA).",X: @CarnegieMellonSB (https://x.com/CarnegieMellonSB),"Instagram: @carnegiemellonsb (https://www.instagram.com/carnegiemellonsb)",@CoachMoHarr (https://x.com/CoachMoHarr),"5000 Forbes Avenue, Pittsburgh, PA 15213","CMU Softball Field, 5000 Forbes Ave, Pittsburgh, PA 15213",Not listed,Not listed,Not listed
+Claflin University,NCAA DII,SC,"James ""Darrin"" Larew",jlarew@claflin.edu,(803) 535-5213,,3,"A competitive program in the CIAA, often contending for the conference championship and NCAA DII tournament spots.",,Instagram: @claflin_softball (https://www.instagram.com/claflin_softball/),,"400 Magnolia St, Orangeburg, SC 29115","400 Magnolia St, Orangeburg, SC 29115",Not listed,B.S. in Sport Management (https://www.claflin.edu/academics/schools-departments/school-of-business/sport-management),School of Education (https://www.claflin.edu/academics/schools-departments/school-of-education)
+Clemson University,NCAA DI,SC,John Rittman,,(864) 656-1934,,4,"A relatively new program that has seen immediate and incredible success, hosting NCAA regionals and becoming a national contender in the ACC.",X: @clemsonsoftball (https://x.com/clemsonsoftball),"Instagram: @clemsonsoftball (https://www.instagram.com/clemsonsoftball)",@rittmanjohn (https://x.com/rittmanjohn),,"McWhorter Stadium, 140 Perimeter Rd, Clemson, SC 29634",B.A. in Psychology - Forensic Psychology Focus Area (https://www.clemson.edu/cbshs/departments/psychology/academics/undergraduate/index.html),"B.S. in Parks, Recreation and Tourism Management (with Sport Management emphasis) (https://www.clemson.edu/cbshs/departments/prtm/)",College of Education (https://www.clemson.edu/education/)
+Colby Community College,JUCO,KS,Kacy Bolding,kacy.bolding@colbycc.edu,(785) 460-5406,,2,"Competes in the competitive Kansas Jayhawk Community College Conference, working to build its program.",X: @ColbySoftball (https://x.com/ColbySoftball),"Instagram: @colbyccsoftball (https://www.instagram.com/colbyccsoftball/)",@kacy_bolding (https://x.com/kacy_bolding),"1255 S Range Ave, Colby, KS 67701","1255 S Range Ave, Colby, KS 67701",Not listed,"Associate of Science, emphasis in Physical Education (https://www.colbycc.edu/academics/course-catalog-and-class-schedule/index.html)","Associate of Science, emphasis in Elementary Education (https://www.colbycc.edu/academics/course-catalog-and-class-schedule/index.html)"
+Colgate University,NCAA DI,NY,Marissa Lamison-Myers,mlamison@colgate.edu,(315) 228-7607,,2,"A member of the Patriot League, the program is working to build a more consistent winning record.",X: @ColgateSoftball (https://x.com/ColgateSoftball),"Instagram: @colgatesoftball (https://www.instagram.com/colgatesoftball)",@CoachMLamison (https://x.com/CoachMLamison),"13 Oak Drive, Hamilton, NY 13346","Eaton Street Field, 13 Oak Dr, Hamilton, NY 13346",Not listed,Not listed,Dept. of Educational Studies (Teacher Preparation Program) (https://www.colgate.edu/academics/departments-programs/educational-studies)
+College of Southern Idaho,JUCO,ID,Nick Baumert,nbaumert@csi.edu,(208) 732-6499,,4,"A dominant and nationally recognized JUCO program that consistently competes for NJCAA championships.",X: @CSIAthletics_SB (https://x.com/CSIAthletics_SB),"Instagram: @csi_softball (https://www.instagram.com/csi_softball/)",,"315 Falls Ave, Twin Falls, ID 83301","315 Falls Ave, Twin Falls, ID 83301",Not listed,A.S. in Physical Education (https://www.csi.edu/programs/physical-education/),A.A./A.S. in Education (https://www.csi.edu/programs/education/)
+Colorado School of Mines,NCAA DII,CO,Mike Coutts,mcoutts@mines.edu,(303) 273-3331,,4,"A powerhouse in NCAA DII, frequently winning the RMAC, hosting regionals, and making deep runs in the national tournament.",X: @OrediggersSB (https://x.com/OrediggersSB),"Instagram: @orediggerssb (https://www.instagram.com/orediggerssb)",@coutts_mike (https://x.com/coutts_mike),"1500 Illinois St, Golden, CO 80401","Joe Coors, Jr. Softball Field, 1651 Elm St, Golden, CO 80401",Not listed,Not listed,Teacher Licensure Program (https://tref.mines.edu/)
+Colorado State University,NCAA DI,CO,Jen Fisher,Jen.Fisher@colostate.edu,(970) 491-3221,,3,"A solid program in the Mountain West Conference that consistently fields a competitive team.",X: @CSUSoftball (https://x.com/CSUSoftball),"Instagram: @csusoftball (https://www.instagram.com/csusoftball)",@CoachJenFisher (https://x.com/CoachJenFisher),,"Ram Field, 2300 S Overland Trail, Fort Collins, CO 80526",Anthropology B.A. with Forensic Anthropology Concentration (https://www.libarts.colostate.edu/anthropology-geography/undergraduate-program/concentrations/),Dept. of Health and Exercise Science (B.S. program) (https://www.chhs.colostate.edu/hes/),School of Education (https://www.chhs.colostate.edu/soe/)
+`;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Robust CSV parser to handle commas inside quoted fields
+    function parseCSV(csv) {
+        const lines = csv.trim().split('\n');
+        const headersLine = lines.shift();
+        // Regex to split headers, handling potential spaces
+        const headers = headersLine.split(',').map(h => h.trim());
+        
+        const rows = lines.map(line => {
+            const row = {};
+            // This regex handles commas inside of quoted fields
+            const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+            
+            if (values.length > 0) {
+                 // Clean up quotes and extra spaces from the values
+                const cleanedValues = values.map(value => {
+                    let cleanVal = value.replace(/^"|"$/g, '').trim();
+                    return cleanVal;
+                });
+
+                if (cleanedValues.length === headers.length) {
+                    headers.forEach((header, i) => {
+                        row[header] = cleanedValues[i] || '';
+                    });
+                }
+            }
+            return row;
+        }).filter(row => row && Object.keys(row).length > 0 && row.University); // Ensure row is not empty and has a university name
+
+        return rows;
+    }
+
+    const tableData = parseCSV(csvData);
+    const tableBody = document.querySelector('#universityTable tbody');
+    const divisionFilter = document.getElementById('divisionFilter');
+    const stateFilter = document.getElementById('stateFilter');
+
+    // Populate dropdowns
+    const divisions = new Set();
+    const states = new Set();
+
+    tableData.forEach(row => {
+        if (row.Division) divisions.add(row.Division);
+        if (row.State) states.add(row.State);
+    });
+
+    [...divisions].sort().forEach(division => {
+        const option = document.createElement('option');
+        option.value = division;
+        option.textContent = division;
+        divisionFilter.appendChild(option);
+    });
+
+    [...states].sort().forEach(state => {
+        const option = document.createElement('option');
+        option.value = state;
+        option.textContent = state;
+        stateFilter.appendChild(option);
+    });
+
+    // Helper to create table cells
+    function createCell(content, className = '') {
+        const cell = document.createElement('td');
+        cell.innerHTML = content;
+        if (className) cell.className = className;
+        return cell;
+    }
+
+    // Helper to create hyperlinks from text that contains them
+    function createLinkFromText(text) {
+        if (!text || text.toLowerCase() === 'not listed' || text.toLowerCase() === 'not easily verifiable') return text;
+        const urlRegex = /(https?:\/\/[^\s)]+)/g; // Match URLs
+        return text.replace(urlRegex, (url) => {
+            // Extract a meaningful name from the text if possible, otherwise use the URL
+            let linkText = text.replace(url, '').replace(/[\(\):]/g, '').trim();
+            if (linkText.length < 5 || linkText.toLowerCase().startsWith('x:')) { // If the remaining text is short or just a label
+                 linkText = "View Program";
+            }
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+        });
+    }
+
+    function renderTable(data) {
+        tableBody.innerHTML = '';
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            
+            // University
+            tr.appendChild(createCell(`<div class="university-name">${row.University}</div>`, 'university-cell'));
+            
+            // Division & State
+            tr.appendChild(createCell(row.Division));
+            tr.appendChild(createCell(row.State));
+
+            // Coach Info
+            let coachInfo = `<b>${row['Head Coach Name']}</b>`;
+            if (row['Head Coach Email']) coachInfo += `<br><a href="mailto:${row['Head Coach Email']}">${row['Head Coach Email']}</a>`;
+            if (row['Head Coach Phone']) coachInfo += `<br>${row['Head Coach Phone']}`;
+            tr.appendChild(createCell(coachInfo));
+
+            // Program Rank
+            let rankInfo = `<div class="rank">${row['Softball Program Rank (1-5)']} ★</div><div><i>${row['Rank Justification']}</i></div>`;
+            tr.appendChild(createCell(rankInfo, 'rank-cell'));
+            
+            // Social Media
+            let socialLinks = '';
+            socialLinks += createLinkFromText(row['Program X address'] || '') + '<br>';
+            socialLinks += createLinkFromText(row['Program Instagram/Facebook'] || '');
+            tr.appendChild(createCell(socialLinks, 'social-links'));
+
+            // Academic Programs
+            let academicLinks = '';
+            academicLinks += `<b>Forensics:</b> ${createLinkFromText(row['Forensic Science Program'])}<br>`;
+            academicLinks += `<b>Sports Sci:</b> ${createLinkFromText(row['Sports Science Program'])}<br>`;
+            academicLinks += `<b>Education:</b> ${createLinkFromText(row['Education/Teaching Program'])}`;
+            tr.appendChild(createCell(academicLinks, 'academic-links'));
+
+            tableBody.appendChild(tr);
+        });
+    }
+
+    window.filterTable = function() {
+        const universityFilter = document.getElementById('universitySearch').value.toUpperCase();
+        const divisionFilterValue = document.getElementById('divisionFilter').value;
+        const stateFilterValue = document.getElementById('stateFilter').value;
+        const rankFilterValue = document.getElementById('rankFilter').value;
+        
+        const filteredData = tableData.filter(row => {
+            const universityMatch = row.University.toUpperCase().includes(universityFilter);
+            const divisionMatch = !divisionFilterValue || row.Division === divisionFilterValue;
+            const stateMatch = !stateFilterValue || row.State === stateFilterValue;
+            const rankMatch = !rankFilterValue || row['Softball Program Rank (1-5)'] === rankFilterValue;
+            
+            return universityMatch && divisionMatch && stateMatch && rankMatch;
+        });
+
+        renderTable(filteredData);
+        
+        const noResultsDiv = document.getElementById('no-results');
+        noResultsDiv.style.display = filteredData.length === 0 ? 'block' : 'none';
+    }
+
+    // Initial render
+    if(tableData.length > 0) {
+        filterTable();
+    } else {
+        document.getElementById('no-results').innerHTML = 'Error: Data could not be loaded.';
+        document.getElementById('no-results').style.display = 'block';
+    }
+});
+</script>
+
+</body>
+</html>
